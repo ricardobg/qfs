@@ -1,4 +1,4 @@
-package qfs.sender;
+
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,12 +18,10 @@ import java.util.List;
  *
  */
 public class Send {
-	public static final String CONF_FILE = ".qfs-sender-conf";
 	public static void main(String[] args) {
 		/*
 		 * How to call this program:
 		 * qfs-send FILE [-d destination -p port] [-jN] [--help]
-		 * When you send a file, it saves the destination and port in a .qfs- file
 		 * Where N is the number of threads to send the file 
 		 */
 		String file = null, destination = null;
@@ -81,44 +79,12 @@ public class Send {
 			System.out.println("Error: No input file.");
 			return;
 		}
-		
-		//Try to read default
-		File file_conf = new File(System.getProperty("user.home") + CONF_FILE);
-		if (!file_conf.exists()) {
-			if (destination == null) {
-				System.out.println("Specify the destination");
-				return;
-			}
-			if (port == -1) {
-				System.out.println("Specify the port");
-				return;
-			}
+		if (destination == null) {
+			System.out.println("Specify the destination");
+			return;
 		}
-		else if (destination == null || port == -1){
-			try { 
-				List<String> lines = Files.readAllLines(Paths.get(file_conf.getAbsolutePath()), Charset.defaultCharset());
-				if (destination == null)
-					destination = lines.get(0);
-				if (port == -1)
-					port = Integer.parseInt(lines.get(1));
-			}
-			catch (FileNotFoundException e) {
-				//Shouldn't happen
-				System.out.println("Unexpected error: File " + CONF_FILE + " not found");
-				return;
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-				return;
-			}
-		}
-		//Writes new configuration
-		try {
-			PrintWriter writer = new PrintWriter(file_conf.getAbsolutePath(), "UTF-8");
-			writer.println(destination);
-			writer.println(port);
-			writer.close();
-		} catch (IOException e) {
-			System.out.println("erro: " + e.getMessage());
+		if (port == -1) {
+			System.out.println("Specify the port");
 			return;
 		}
 	}
