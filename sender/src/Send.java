@@ -31,28 +31,30 @@ public class Send {
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].startsWith("-")) {
 				//Command arguments
-				if (args[i].equals( "-d")) {
-					if (i == args.length - 1) {
-						System.out.println("Missing destination");
-						return;
-					}
-					destination = args[++i];
+				switch (args[i]) {
+					case "-d":
+						if (i == args.length - 1) {
+							System.out.println("Missing destination");
+							return;
+						}
+						destination = args[++i];
+						continue;
+					case "-p":
+						if (i == args.length - 1) {
+							System.out.println("Missing port");
+							return;
+						}
+						try {
+							port = Integer.parseInt(args[++i]);
+						}
+						catch (NumberFormatException e) {
+							System.out.println("Invalid port: '" + args[i]);
+							return;
+						}
+						continue;
 				}
-				else if (args[i].equals("-p")) {
-					if (i == args.length - 1) {
-						System.out.println("Missing port");
-						return;
-					}
-					try {
-						port = Integer.parseInt(args[++i]);
-					}
-					catch (NumberFormatException e) {
-						System.out.println("Invalid port: '" + args[i]);
-						return;
-					}
-				}
-				else if (args[i].startsWith("-j") && args[i].length() > 2) {
-					
+				if (args[i].startsWith("-j") && args[i].length() > 2) {
+					//TODO
 				}
 				else if (args[i].equals("--help")) {
 					//TODO: Print help
@@ -74,7 +76,6 @@ public class Send {
 				}
 			}
 		}
-		
 		if (file == null) {
 			System.out.println("Error: No input file.");
 			return;
