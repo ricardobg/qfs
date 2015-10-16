@@ -1,3 +1,5 @@
+import qfs.receiver.FileReceiver;
+
 public class Receive {
 
 	public static void main(String[] args) {
@@ -46,5 +48,8 @@ public class Receive {
 				}
 			}
 		}
+		
+		FileReceiver fr = new FileReceiver(file, port);
+		
 	}
 }
