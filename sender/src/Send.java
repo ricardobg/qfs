@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import qfs.sender.FileSender;
+
 /**
  * Class to implement user interaction
  * @author ricardo
@@ -87,6 +89,14 @@ public class Send {
 		if (port == -1) {
 			System.out.println("Specify the port");
 			return;
+		}
+		
+		// send the file
+		try {
+			FileSender fs = new FileSender(file);
+			fs.send(destination, port);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 	}
 }
