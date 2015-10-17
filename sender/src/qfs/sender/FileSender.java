@@ -84,7 +84,8 @@ public class FileSender {
 				do
 				{
 					read = fis.read(buffer); 
-					Block b = new Block(buffer, read, part++);
+					Block b = new Block(buffer, read, part);
+					part += Block.BLOCK_SIZE;
 					queue.put(b);
 				}
 				while (read > 0 && !tcp_error);
