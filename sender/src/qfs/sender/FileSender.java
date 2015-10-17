@@ -80,7 +80,6 @@ public class FileSender {
 					while (true) {
 						Block buffer = queue.take();
 						if (buffer.finished()) {
-							System.out.println("CABO");
 							break;
 						}
 						output.write(buffer.getBytes());
