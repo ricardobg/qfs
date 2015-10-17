@@ -146,7 +146,8 @@ public class FileReceiver {
 		Block block = map_blocks.get(current_id);
 		while (block != null) {
 			fos.write(block.getBytes());
-			block = map_blocks.get(++current_id);
+			current_id += Block.BLOCK_SIZE;
+			block = map_blocks.get(current_id);
 		}
 		
 		return current_id;
