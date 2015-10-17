@@ -27,7 +27,7 @@ public class Send {
 		 * Where N is the number of threads to send the file 
 		 */
 		String file = null, destination = null;
-		int port = -1;
+		int port = -1, threads = 1;
 		if (args.length == 0)
 			System.out.println("Usage: qfs-send FILE [-d destination -p port] [-jN] [--help]");
 		for (int i = 0; i < args.length; i++) {
@@ -56,7 +56,13 @@ public class Send {
 						continue;
 				}
 				if (args[i].startsWith("-j") && args[i].length() > 2) {
-					//TODO
+					try {
+						threads = Integer.parseInt(args[i].substring(2));
+					}
+					catch (Exception e) {
+						System.out.println("Invalid number of threads: '" + args[i]);
+						return;
+					}
 				}
 				else if (args[i].equals("--help")) {
 					//TODO: Print help
@@ -93,7 +99,7 @@ public class Send {
 		
 		// send the file
 		try {
-			FileSender fs = new FileSender(file);
+			FileSender fs = new FileSender(file, threads);
 			fs.send(destination, port);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
