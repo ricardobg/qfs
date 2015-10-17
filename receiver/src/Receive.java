@@ -3,8 +3,8 @@ import qfs.receiver.FileReceiver;
 public class Receive {
 
 	public static void main(String[] args) {
-		String file = null, destination = null;
-		int port = -1, nJobs = 0;
+		String file = null;
+		int port = -1, nJobs = 1;
 		
 		if (args.length == 0) {
 			System.out.println("Usage: qfs-receive FILE -p port [-jN] [--help]");
@@ -49,7 +49,6 @@ public class Receive {
 			}
 		}
 		FileReceiver fr = new FileReceiver(file);
-		
-		fr.receive(port);
+		fr.receive(port, nJobs);
 	}
 }
