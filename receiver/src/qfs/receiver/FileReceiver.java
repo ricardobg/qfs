@@ -116,7 +116,7 @@ public class FileReceiver {
 						System.out.println(b.getId() + " " + t4_id);
 						if (b.getId() == t4_id) {
 							fos.write(b.getBytes());
-							t4_id += b.getSize();
+							t4_id += Block.BLOCK_SIZE;
 						} else {
 							map_blocks.put(b.getId(), b);
 							t4_id = writeBlockFromMapIfExists(t4_id, fos);
