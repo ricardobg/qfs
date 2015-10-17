@@ -49,7 +49,7 @@ public class Receive {
 			}
 		}
 		
-		FileReceiver fr = new FileReceiver(file, port);
+		FileReceiver fr = new FileReceiver(file, port, nJobs);
 		
 	}
 }
