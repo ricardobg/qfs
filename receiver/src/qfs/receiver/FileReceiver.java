@@ -121,7 +121,7 @@ public class FileReceiver {
 						if (counterThreads3 == nThreads)
 							break;
 						
-						System.out.println("Block arrived: " + b.getId() + " Block expected: " + t4_id);
+						System.out.println("Block arrived: " + b.getId() + "	Block expected: " + t4_id);
 						if (b.getId() == t4_id) {
 							fos.write(b.getBytes());
 							t4_id += Block.BLOCK_SIZE;

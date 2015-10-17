@@ -30,6 +30,9 @@ public class Receive {
 							System.out.println("Invalid number of threads: " + args[i]);
 							return;							
 						}
+					} else if (args[i].equals("-q")) { 
+					
+					
 					} else if (args[i].equals("--help")) {
 						System.out.println("Command to prepare computer for receiving file through TCP:");
 						System.out.println("");
