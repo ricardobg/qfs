@@ -26,18 +26,19 @@ public class FileReceiver {
 	}
 	
 	public void receive(final int port) {
+		
 		try {
 			serverSocket = new ServerSocket(port);
 			clientSocker = serverSocket.accept();
-		
-		Thread3 threadWriteBuffer = new Thread3(0);
-		Thread4 threadWriteFile = new Thread4(0);
-		threadWriteBuffer.start();
-		threadWriteFile.start();
-		while (threadWriteBuffer.isAlive() || threadWriteFile.isAlive()) {
-			Thread.sleep(100);
-		}
-		
+			
+			Thread3 threadWriteBuffer = new Thread3(0);
+			Thread4 threadWriteFile = new Thread4(0);
+			threadWriteBuffer.start();
+			threadWriteFile.start();
+			while (threadWriteBuffer.isAlive() || threadWriteFile.isAlive()) {
+				Thread.sleep(100);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
