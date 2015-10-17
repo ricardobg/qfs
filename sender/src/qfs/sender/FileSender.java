@@ -7,10 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.Buffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import qfs.common.Block;
@@ -25,7 +21,7 @@ public class FileSender {
 	private ArrayBlockingQueue<Block> queue;
 	private volatile long read_time = 0;
 	private volatile long send_time = 0;
-	final private int queue_size = 100;
+	private int queue_size = 100;
 	private int threads;
 	Socket socket;
 	public FileSender(String file_path) throws Exception {
@@ -79,13 +75,13 @@ public class FileSender {
 				FileInputStream fis = new FileInputStream(file);
 				int read;
 				long start = System.currentTimeMillis();
-				byte[] buffer = new byte[Block.BLOCK_SIZE];
+				byte[] buffer = new byte[Block.getBlockSize()];
 				int part = 0;
 				do
 				{
 					read = fis.read(buffer); 
 					Block b = new Block(buffer, read, part);
-					part += Block.BLOCK_SIZE;
+					part += Block.getBlockSize();
 					queue.put(b);
 				}
 				while (read > 0 && !tcp_error);
