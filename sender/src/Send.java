@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import qfs.common.Block;
 import qfs.sender.FileSender;
 
 /**
@@ -23,13 +24,13 @@ public class Send {
 	public static void main(String[] args) {
 		/*
 		 * How to call this program:
-		 * qfs-send FILE [-d destination -p port] [-jN] [--help]
+		 * qfs-send FILE -d destination -p port [-jN] [-b block_size] [-q queue_size] [--help]
 		 * Where N is the number of threads to send the file 
 		 */
 		String file = null, destination = null;
-		int port = -1, threads = 1;
+		int port = -1, threads = 1, block_size = Block.getBlockSize(), queue_size = 100;
 		if (args.length == 0)
-			System.out.println("Usage: qfs-send FILE -d destination -p port [-jN] [--help]");
+			System.out.println("Usage: qfs-send FILE -d destination -p port [-b block_size] [-q queue_size] [-jN] [--help]");
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].startsWith("-")) {
 				//Command arguments
@@ -54,6 +55,32 @@ public class Send {
 							return;
 						}
 						continue;
+					case "-b":
+						if (i == args.length - 1) {
+							System.out.println("Missing block size");
+							return;
+						}
+						try {
+							block_size = Integer.parseInt(args[++i]);
+						}
+						catch (NumberFormatException e) {
+							System.out.println("Invalid Block size: '" + args[i]);
+							return;
+						}
+						continue;
+					case "-q":
+						if (i == args.length - 1) {
+							System.out.println("Missing queue size");
+							return;
+						}
+						try {
+							queue_size = Integer.parseInt(args[++i]);
+						}
+						catch (NumberFormatException e) {
+							System.out.println("Invalid Queue size: '" + args[i]);
+							return;
+						}
+						continue;
 				}
 				if (args[i].startsWith("-j") && args[i].length() > 2) {
 					try {
@@ -66,11 +93,13 @@ public class Send {
 				}
 				 else if (args[i].equals("--help")) {
 						System.out.println("Command to send file through TCP:");
-						System.out.println("");
+						System.out.println("Usage: qfs-send FILE -d destination -p port [-b block_size] [-q queue_size] [-jN] [--help]");
 						System.out.println("FILE: name of the input file.");
 						System.out.println("-d DEST: DEST is the destination.");
 						System.out.println("-p PORT: PORT is the port number of the receiver.");
 						System.out.println("-jN: N ir the number of threads to send.");
+						System.out.println("-b SIZE: SIZE is the size of the block.");
+						System.out.println("-q SIZE: SIZE is the maximum queue size.");
 						return;
 					}
 				else {
@@ -104,7 +133,7 @@ public class Send {
 		
 		// send the file
 		try {
-			FileSender fs = new FileSender(file);
+			FileSender fs = new FileSender(file, queue_size, block_size);
 			fs.send(destination, port, threads);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());

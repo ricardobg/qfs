@@ -20,15 +20,14 @@ public class FileSender {
 	private Exception tcp_exception = null;
 	private ArrayBlockingQueue<Block> queue;
 	private volatile long read_time = 0;
-	private volatile long send_time = 0;
-	private int queue_size = 100;
 	private int threads;
 	Socket socket;
-	public FileSender(String file_path) throws Exception {
+	public FileSender(String file_path, int queue_size, int block_size) throws Exception {
 		file = new File(file_path);
 		if (!file.exists()) {
 			throw new Exception("File '" + file_path + "' not found");
 		}
+		Block.SetBlockSize(block_size);
 		queue = new ArrayBlockingQueue<Block>(queue_size);
 	}
 	
