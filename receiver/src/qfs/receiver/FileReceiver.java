@@ -61,10 +61,14 @@ public class FileReceiver {
 				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
 				byte[] b = new byte[Block.BLOCK_SIZE];
 				int read = dis.read(b);
+				
+				long start = System.currentTimeMillis();
 				while (read > 0) {
 					buffer.put(new Block(b, read, t3_id++));
 					read = dis.read(b);
-				}					
+				}
+				long now = System.currentTimeMillis();
+		        System.out.println("Time to transmit: " + (now - start) / 1000.0 + "");
 				
 				buffer.put(new Block());
 				
@@ -92,12 +96,16 @@ public class FileReceiver {
 				FileOutputStream fos = null;
 					fos = new FileOutputStream(file);
 				
+				long start = System.currentTimeMillis();
 				while (true) {
 						Block b = buffer.take();
 						if (b.finished())
 							break;
 						fos.write(b.getBytes()); 
 				}
+				long now = System.currentTimeMillis();
+		        System.out.println("Time to write " + (now - start) / 1000.0 + "");
+		        
 				fos.close();
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
