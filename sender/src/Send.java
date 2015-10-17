@@ -95,7 +95,6 @@ public class Send {
 		try {
 			FileSender fs = new FileSender(file);
 			fs.send(destination, port);
-			System.out.println("File sent!");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}

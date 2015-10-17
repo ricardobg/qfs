@@ -21,8 +21,8 @@ public class FileSender {
 	private Exception reading_exception = null;
 	private Exception tcp_exception = null;
 	private ArrayBlockingQueue<Block> queue;
-	private volatile int read_blocks = 0;
-	private volatile int sent_blocks = 0;
+	private volatile long read_time = 0;
+	private volatile long send_time = 0;
 	final private int queue_size = 100;
 	Socket socket;
 	public FileSender(String file_path) throws Exception {
@@ -40,18 +40,17 @@ public class FileSender {
 			public void run() {
 				try {
 					FileInputStream fis = new FileInputStream(file);
-					
-					
 					int read;
+					long start = System.currentTimeMillis();
 					do
 					{
 						byte[] buffer = new byte[Block.BLOCK_SIZE];
 						read = fis.read(buffer); 
 						Block b = new Block(buffer, read, 0);
 						queue.put(b);
-						read_blocks++;
 					}
 					while (read > 0 && !tcp_error);
+					read_time = System.currentTimeMillis() - start;
 					fis.close();
 					queue.put(new Block());
 				}
@@ -77,6 +76,7 @@ public class FileSender {
 				// Initializes TCP
 				try {
 					DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+					long start = System.currentTimeMillis();
 					while (true) {
 						Block buffer = queue.take();
 						if (buffer.finished()) {
@@ -84,11 +84,12 @@ public class FileSender {
 						}
 						output.write(buffer.getBytes());
 						output.flush();
-						sent_blocks++;
+						
 					}
 					output.close();
 					//socket.
 					socket.close();
+					send_time = System.currentTimeMillis() - start;
 				} 
 				catch (IOException e) {
 					tcp_exception = new Exception("I/O error: " + e.getMessage());
@@ -115,14 +116,12 @@ public class FileSender {
 			read_thread.start();
 			send_thread.start();
 			while (send_thread.isAlive() || read_thread.isAlive()) {
-				System.out.printf("\rRead Blocks: %d. Sent Blocks: %d        ", read_blocks, sent_blocks);
 				try {
 				    Thread.sleep(100);
 				} catch(InterruptedException ex) {
 				    Thread.currentThread().interrupt();
 				}
 			}
-			System.out.printf("     ");
 			System.out.println();
 		}
 		//Finished loop, check for errors
@@ -130,6 +129,8 @@ public class FileSender {
 			throw reading_exception;
 		if (tcp_error)
 			throw tcp_exception;
-		System.out.printf("Read Blocks: %5d. Sent Blocks: %5d", read_blocks, sent_blocks);
+		System.out.println("File sent!");
+		System.out.println("Time to Read: " + read_time + "ms");
+		System.out.println("Time to Send: " + send_time + "ms");
 	}
 }
