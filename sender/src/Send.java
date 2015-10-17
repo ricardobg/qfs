@@ -29,7 +29,7 @@ public class Send {
 		String file = null, destination = null;
 		int port = -1, threads = 1;
 		if (args.length == 0)
-			System.out.println("Usage: qfs-send FILE [-d destination -p port] [-jN] [--help]");
+			System.out.println("Usage: qfs-send FILE -d destination -p port [-jN] [--help]");
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].startsWith("-")) {
 				//Command arguments
@@ -64,10 +64,15 @@ public class Send {
 						return;
 					}
 				}
-				else if (args[i].equals("--help")) {
-					//TODO: Print help
-					return;
-				}
+				 else if (args[i].equals("--help")) {
+						System.out.println("Command to send file through TCP:");
+						System.out.println("");
+						System.out.println("FILE: name of the input file.");
+						System.out.println("-d DEST: DEST is the destination.");
+						System.out.println("-p PORT: PORT is the port number of the receiver.");
+						System.out.println("-jN: N ir the number of threads to send.");
+						return;
+					}
 				else {
 					System.out.println("Invalid option: '" + args[i] + "'" );
 					return;
@@ -99,8 +104,8 @@ public class Send {
 		
 		// send the file
 		try {
-			FileSender fs = new FileSender(file, threads);
-			fs.send(destination, port);
+			FileSender fs = new FileSender(file);
+			fs.send(destination, port, threads);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}

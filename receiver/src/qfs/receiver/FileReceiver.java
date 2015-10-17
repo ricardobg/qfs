@@ -73,12 +73,13 @@ public class FileReceiver {
 		public void run() {
 			try {
 				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
-				byte[] b = new byte[Block.BLOCK_SIZE];
+				byte[] b = new byte[Block.REAL_BLOCK_SIZE];
 				int read = dis.read(b);
 				
 				long start = System.currentTimeMillis();
 				while (read > 0) {
-					buffer.put(new Block(b, read));
+					Block block = new Block(b, read);
+					buffer.put(block);
 					read = dis.read(b);
 				}
 				long now = System.currentTimeMillis();

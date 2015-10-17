@@ -28,34 +28,33 @@ public class FileSender {
 	final private int queue_size = 100;
 	private int threads;
 	Socket socket;
-	public FileSender(String file_path, int threads) throws Exception {
+	public FileSender(String file_path) throws Exception {
 		file = new File(file_path);
-		this.threads = threads;
 		if (!file.exists()) {
 			throw new Exception("File '" + file_path + "' not found");
 		}
 		queue = new ArrayBlockingQueue<Block>(queue_size);
 	}
 	
-	public void send(final String destination, final int port) throws Exception {
-		Thread1 thread1 = null;//read thread
+	public void send(final String destination, final int port, final int threads) throws Exception {
+		this.threads = threads;
+		Thread1 thread1 = new Thread1();//read thread
 		Thread2[] threads2 = new Thread2[threads];//send thread
 		try  {
 			socket = new Socket(destination, port);
-			thread1 = new Thread1();
 			for (int i = 0; i < threads; i++)
 				threads2[i] = new Thread2(socket);
 		}
 		catch (UnknownHostException e) {
 			throw new Exception("Unkown host: " + e.getMessage());
-			
 		}
 		catch (IOException e) {
 			throw new Exception("I/O error: " + e.getMessage());
 		} 
-		thread1.start();
+		
 		for (int i = 0; i < threads; i++)
 			threads2[i].start();
+		thread1.start();
 		while (HasAlive(thread1, threads2)) {
 			try {
 			    Thread.sleep(100);
@@ -71,7 +70,6 @@ public class FileSender {
 			throw tcp_exception;
 		System.out.println("File sent!");
 		System.out.println("Time to Read: " + read_time + "ms");
-		System.out.println("Time to Send: " + send_time + "ms");
 	}
 	
 	private class Thread1 extends Thread {
@@ -144,11 +142,11 @@ public class FileSender {
 	
 	public static boolean HasAlive(Object... objs) throws Exception {
 		for (Object obj : objs) {
-			if (obj instanceof Thread1 || obj instanceof Thread2) {
+			if (obj instanceof Thread) {
 				if (((Thread)obj).isAlive())
 					return true;
 			}
-			else if (obj instanceof Thread1[] || obj instanceof Thread2[]) {
+			else if (obj instanceof Thread[]) {
 				for (Thread thr : (Thread[]) obj) {
 					if (thr.isAlive())
 						return true;
