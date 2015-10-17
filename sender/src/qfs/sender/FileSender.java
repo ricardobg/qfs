@@ -11,7 +11,7 @@ import java.nio.Buffer;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import qfs.common.BytesHolder;
+import qfs.common.Block;
 
 public class FileSender {
 	private File file;
@@ -20,18 +20,17 @@ public class FileSender {
 	private volatile boolean read_error = false;
 	private Exception reading_exception = null;
 	private Exception tcp_exception = null;
-	private ArrayBlockingQueue<BytesHolder> queue;
+	private ArrayBlockingQueue<Block> queue;
 	private volatile int read_blocks = 0;
 	private volatile int sent_blocks = 0;
 	final private int queue_size = 100;
-	final private int block_size = 7;
 	Socket socket;
 	public FileSender(String file_path) throws Exception {
 		file = new File(file_path);
 		if (!file.exists()) {
 			throw new Exception("File '" + file_path + "' not found");
 		}
-		queue = new ArrayBlockingQueue<BytesHolder>(queue_size);
+		queue = new ArrayBlockingQueue<Block>(queue_size);
 	}
 	
 	public void send(final String destination, final int port) throws Exception {
@@ -42,17 +41,19 @@ public class FileSender {
 				try {
 					FileInputStream fis = new FileInputStream(file);
 					
-					byte[] buffer = new byte[block_size];
+					
 					int read;
 					do
 					{
+						byte[] buffer = new byte[Block.BLOCK_SIZE];
 						read = fis.read(buffer); 
-						queue.put(new BytesHolder(buffer, read, 0));
+						Block b = new Block(buffer, read, 0);
+						queue.put(b);
 						read_blocks++;
 					}
 					while (read > 0 && !tcp_error);
 					fis.close();
-					queue.put(new BytesHolder());
+					queue.put(new Block());
 				}
 				catch (FileNotFoundException e) {
 					reading_exception = new Exception("File '" + file + "' not found");
@@ -77,12 +78,12 @@ public class FileSender {
 				try {
 					DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 					while (true) {
-						BytesHolder buffer = queue.take();
+						Block buffer = queue.take();
 						if (buffer.finished()) {
+							System.out.println("CABO");
 							break;
 						}
 						output.write(buffer.getBytes());
-						System.out.println("Recebeu: '" + new String(buffer.getBytes(), "UTF-8") + "'");
 						output.flush();
 						sent_blocks++;
 					}
