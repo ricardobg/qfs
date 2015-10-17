@@ -8,6 +8,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import qfs.common.Block;
+
 public class FileReceiver {
 	private File file;
 	
@@ -16,13 +18,11 @@ public class FileReceiver {
 	
 	final private int buffer_size = 100;
 	final private int block_size = 100*1024;
-	private ArrayBlockingQueue<byte[]> buffer;
+	private ArrayBlockingQueue<Block> buffer;
 	
-	public FileReceiver(String file_path, int port, int nThreads) {
+	public FileReceiver(String file_path) {
 		file = new File(file_path);
-		buffer = new ArrayBlockingQueue<byte[]>(buffer_size);
-		
-		receive(port);
+		buffer = new ArrayBlockingQueue<Block>(buffer_size);
 	}
 	
 	public void receive(final int port) {
@@ -45,8 +45,9 @@ public class FileReceiver {
 	//Thread 3 -> receive data and write the bytes in a buffer.
 	private class Thread3 implements Runnable {
 		
-		int number; //number of thread
-		Thread t3;
+		private int number; //number of thread
+		private Thread t3;
+		private int t3_id = 0; //package id
 		
 		public Thread3(int number) {
 			this.number = number;
@@ -66,10 +67,10 @@ public class FileReceiver {
 				byte[] b = new byte[block_size];
 				
 				while (dis.read(b) > 0) {
-					buffer.put(b);
+					buffer.put(new Block(b, block_size, t3_id++));
 				}					
 				
-				buffer.put(new byte[0]);
+				buffer.put(new Block());
 				
 				serverSocket.close();
 				clientSocker.close();
@@ -84,6 +85,7 @@ public class FileReceiver {
 
 		int number; //number of thread
 		Thread t4;
+		private int t4_id = 0; //package id
 		
 		public Thread4(int number) {
 			this.number = number;
@@ -102,9 +104,9 @@ public class FileReceiver {
 					fos = new FileOutputStream(file);
 				
 				while (!clientSocker.isOutputShutdown()) {
-						byte[] b = buffer.take();
-						if(b.length > 0)
-							fos.write(b);
+						Block b = buffer.take();
+						if(b.getSize() > 0)
+							fos.write(b.getBytes());
 						else break;
 									
 				}

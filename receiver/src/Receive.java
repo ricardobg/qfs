@@ -49,7 +49,8 @@ public class Receive {
 			}
 		}
 		
-		FileReceiver fr = new FileReceiver(file, port, nJobs);
+		FileReceiver fr = new FileReceiver(file);
+		fr.receive(port);
 		
 	}
 }
