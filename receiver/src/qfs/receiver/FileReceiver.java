@@ -22,7 +22,6 @@ public class FileReceiver {
 	private ArrayBlockingQueue<Block> buffer;
 	
 	Thread3[] multiThread3;
-	Thread4[] multiThread4;
 	
 	Map<Integer, Block> map_blocks;	//hash table of id_block to block;
 	
@@ -41,17 +40,16 @@ public class FileReceiver {
 			System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
 			
 			multiThread3 = new Thread3[nThreads];
-			multiThread4 = new Thread4[nThreads];
 			
 			for (int i = 0; i < nThreads; i++) {
 				multiThread3[i] = new Thread3(i);
 				multiThread3[i].start();
-				
-				multiThread4[i] = new Thread4(i);
-				multiThread4[i].start();
 			}
 			
-			while (threadsAreAlive(nThreads)) {
+			Thread4 thread4 = new Thread4(0);
+			thread4.start();
+			
+			while (threadsAreAlive(nThreads) || thread4.isAlive()) {
 				Thread.sleep(100);
 			}
 			
@@ -138,7 +136,7 @@ public class FileReceiver {
 	
 	private boolean threadsAreAlive(int nThreads) {
 		for (int i = 0; i < nThreads; i++)
-			if (multiThread3[i].isAlive() || multiThread4[i].isAlive())
+			if (multiThread3[i].isAlive())
 				return true;
 		return false;
 	}
