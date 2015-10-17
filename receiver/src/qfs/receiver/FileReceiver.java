@@ -68,7 +68,7 @@ public class FileReceiver {
 					read = dis.read(b);
 				}
 				long now = System.currentTimeMillis();
-		        System.out.println("Time to transmit: " + (now - start) / 1000.0 + "");
+		        System.out.println("Time to transmit: " + (now - start) / 1000.0 + "s");
 				
 				buffer.put(new Block());
 				
@@ -104,7 +104,7 @@ public class FileReceiver {
 						fos.write(b.getBytes()); 
 				}
 				long now = System.currentTimeMillis();
-		        System.out.println("Time to write " + (now - start) / 1000.0 + "");
+		        System.out.println("Time to write " + (now - start) / 1000.0 + "s");
 		        
 				fos.close();
 			} catch (IOException | InterruptedException e) {
