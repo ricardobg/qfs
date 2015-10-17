@@ -9,7 +9,7 @@ public class Receive {
 		if (args.length == 0) {
 			System.out.println("Usage: qfs-receive FILE -p port [-jN] [--help]");
 		} else {
-			for (int i = 1; i < args.length; i++) {
+			for (int i = 0; i < args.length; i++) {
 				if (args[i].startsWith("-")) {
 					if(args[i].equals("-p")) {
 							if (i == args.length - 1) {

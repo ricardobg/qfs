@@ -30,16 +30,16 @@ public class FileReceiver {
 			serverSocket = new ServerSocket(port);
 			clientSocker = serverSocket.accept();
 		
-		Thread3 threadWriteBuffer = new Thread3(0);
-		Thread4 threadWriteFile = new Thread4(0);
-		
-		while (threadWriteBuffer.isAlive() || threadWriteFile.isAlive()) {
-			Thread.sleep(100);
-		}
-		
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			Thread3 threadWriteBuffer = new Thread3(0);
+			Thread4 threadWriteFile = new Thread4(0);
+			
+			while (threadWriteBuffer.isAlive() || threadWriteFile.isAlive()) {
+				Thread.sleep(100);
+			}
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 	}
 
 	//Thread 3 -> receive data and write the bytes in a buffer.
