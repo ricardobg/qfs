@@ -46,12 +46,15 @@ public class FileReceiver {
 				multiThread3[i].start();
 			}
 			
-			Thread4 thread4 = new Thread4(0);
+			Thread4 thread4 = new Thread4(0, nThreads);
 			thread4.start();
 			
 			while (threadsAreAlive(nThreads) || thread4.isAlive()) {
 				Thread.sleep(100);
 			}
+		
+			serverSocket.close();
+			clientSocker.close();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -85,8 +88,6 @@ public class FileReceiver {
 				
 				buffer.put(new Block());
 				
-				serverSocket.close();
-				clientSocker.close();
 			} catch(IOException | InterruptedException e) {
 				e.printStackTrace();
 			}	
@@ -96,11 +97,14 @@ public class FileReceiver {
 	//Thread 4 -> write bytes to a file 
 	private class Thread4 extends Thread {
 
-		int number; //number of thread
+		private int number; //number of thread
 		private int t4_id = 0; //package id
+		private int nThreads;
+		private int counterThreads3 = 0;
 		
-		public Thread4(int number) {
+		public Thread4(int number, int n) {
 			this.number = number;
+			this.nThreads = n;
 		}
 		
 		@Override
@@ -112,8 +116,12 @@ public class FileReceiver {
 				while (true) {
 						Block b = buffer.take();
 						if (b.finished())
+							counterThreads3++;
+						
+						if (counterThreads3 == nThreads)
 							break;
-						System.out.println(b.getId() + " " + t4_id);
+						
+						System.out.println("Block arrived: " + b.getId() + " Block expected: " + t4_id);
 						if (b.getId() == t4_id) {
 							fos.write(b.getBytes());
 							t4_id += Block.BLOCK_SIZE;
