@@ -7,7 +7,7 @@ public class Receive {
 		String file = null;
 		int port = -1, 
 			nJobs = 1, 
-			block_size = Block.getRealBlockSize(), 
+			block_size = Block.getBlockSize(), 
 			queue_size = 100;
 		
 		if (args.length == 0) {
