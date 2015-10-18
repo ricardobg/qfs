@@ -32,7 +32,7 @@ public class FileReceiver {
 		
 	}
 	
-	public void receive(final int port, final int nThreads) {
+	public void receive(final int port, final int nThreads, final int block_size, final int queue_size) {
 		
 		try {
 			serverSocket = new ServerSocket(port);

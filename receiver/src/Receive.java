@@ -1,13 +1,17 @@
+import qfs.common.Block;
 import qfs.receiver.FileReceiver;
 
 public class Receive {
 
 	public static void main(String[] args) {
 		String file = null;
-		int port = -1, nJobs = 1;
+		int port = -1, 
+			nJobs = 1, 
+			block_size = Block.getRealBlockSize(), 
+			queue_size = 100;
 		
 		if (args.length == 0) {
-			System.out.println("Usage: qfs-receive FILE -p port [-jN] [--help]");
+			System.out.println("Usage: qfs-receive FILE -p port [-b block_size] [-q queue_size] [-jN] [--help]");
 		} else {
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].startsWith("-")) {
@@ -31,13 +35,37 @@ public class Receive {
 							return;							
 						}
 					} else if (args[i].equals("-q")) { 
+						if (i == args.length - 1){
+							System.out.println("Missing or invalid queue size");
+							return;
+						} else {
+							try {
+								queue_size = Integer.parseInt(args[++i]);
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid number format at queue_size.");
+								return;
+							}
+						}
 					
-					
+					} else if (args[i].equals("-b")) {
+						if (i == args.length - 1){
+							System.out.println("Missing or invalid block size");
+							return;
+						} else {
+							try {
+								block_size = Integer.parseInt(args[++i]);
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid number format at block_size.");
+								return;
+							}
+						}
 					} else if (args[i].equals("--help")) {
 						System.out.println("Command to prepare computer for receiving file through TCP:");
 						System.out.println("");
 						System.out.println("FILE: name of the output file.");
 						System.out.println("-p N: N is the port number.");
+						System.out.println("-b N: N is the block size.");
+						System.out.println("-q N: N is the queue size.");
 						System.out.println("-jN: N ir the number of threads to receive.");
 						return;
 					}
@@ -52,6 +80,6 @@ public class Receive {
 			}
 		}
 		FileReceiver fr = new FileReceiver(file);
-		fr.receive(port, nJobs);
+		fr.receive(port, nJobs, block_size, queue_size);
 	}
 }
