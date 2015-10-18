@@ -23,7 +23,7 @@ public class FileReceiver {
 	private ArrayBlockingQueue<Block> buffer;
 	
 	private Thread3[] multiThread3;
-	private long[] get_time;
+	private volatile long rec_time = 0;
 	
 	Map<Integer, Block> map_blocks;	//hash table of id_block to block;
 	
@@ -37,8 +37,6 @@ public class FileReceiver {
 	public void receive(final int port, final int nThreads, final int block_size, final int queue_size) {
 		
 		try {
-			get_time = new long[nThreads];
-			
 			serverSocket = new ServerSocket(port);
 			clientSocker = serverSocket.accept();
 			System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
@@ -60,11 +58,7 @@ public class FileReceiver {
 			serverSocket.close();
 			clientSocker.close();
 			
-			long total_time = 0;
-			for (int i = 0; i < nThreads; i++) {
-				total_time += get_time[i];
-			}
-			System.out.println("Time to transmit : " + total_time / 1000000.0 + "ms");
+			System.out.println("Time to receive : " + rec_time / 1000000.0 + "ms");
 			
 			
 			
@@ -86,13 +80,12 @@ public class FileReceiver {
 		public void run() {
 			try {
 				byte[] b = new byte[Block.getRealBlockSize()];
+				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
 				
 				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
-				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-				get_time[number] = now - start;
-				
 				int read = dis.read(b);
+				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+				rec_time += now - start;
 				
 				while (read > 0) {
 					Block block = new Block(b, read);
@@ -146,7 +139,7 @@ public class FileReceiver {
 						
 				}
 				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-				System.out.println("Time to write file: " + (now - start) / 1000000 + "ms");
+				System.out.println("Time to write file: " + (now - start) / 1000000.0 + "ms");
 		        
 				fos.close();
 			} catch (IOException | InterruptedException e) {
