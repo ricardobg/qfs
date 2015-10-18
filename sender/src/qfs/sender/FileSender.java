@@ -23,14 +23,16 @@ public class FileSender {
 	private volatile long read_time = 0;
 	private volatile long send_time = 0;
 	private int threads;
+	private final boolean shared_connection;
 	Socket socket;
-	public FileSender(String file_path, int queue_size, int block_size) throws Exception {
+	public FileSender(String file_path, int queue_size, int block_size, boolean shared_connection) throws Exception {
 		file = new File(file_path);
 		if (!file.exists()) {
 			throw new Exception("File '" + file_path + "' not found");
 		}
 		Block.SetBlockSize(block_size);
 		queue = new ArrayBlockingQueue<Block>(queue_size);
+		this.shared_connection = shared_connection;
 	}
 	
 	public void send(final String destination, final int port, final int threads) throws Exception {
@@ -38,10 +40,16 @@ public class FileSender {
 		Thread1 thread1 = new Thread1();//read thread
 		Thread2[] threads2 = new Thread2[threads];//send thread
 		try  {
-			socket = new Socket(destination, port);
-			System.out.println("New connection with server " + socket.getInetAddress().getHostAddress());
-			for (int i = 0; i < threads; i++)
-				threads2[i] = new Thread2(socket);
+			if (shared_connection) {
+				socket = new Socket(destination, port);
+				System.out.println("New connection with server " + socket.getInetAddress().getHostAddress());
+			}
+			for (int i = 0; i < threads; i++) {
+				if (this.shared_connection)
+					threads2[i] = new Thread2(socket);
+				else
+					threads2[i] = new Thread2(destination, port);
+			}
 		}
 		catch (UnknownHostException e) {
 			throw new Exception("Unkown host: " + e.getMessage());
@@ -59,6 +67,12 @@ public class FileSender {
 			} catch(InterruptedException ex) {
 			    Thread.currentThread().interrupt();
 			}
+		}
+		try {
+			if (shared_connection)
+				this.socket.close();
+		} catch (Exception e) {
+			
 		}
 		System.out.println();
 		//Finished loop, check for errors
@@ -113,6 +127,11 @@ public class FileSender {
 	
 	private class Thread2 extends Thread {
 		private Socket socket;
+		public Thread2(String destination, int port) throws UnknownHostException, IOException {
+			this.socket = new Socket(destination, port);
+			System.out.println("New connection with server " + socket.getInetAddress().getHostAddress());
+			
+		}
 		public Thread2(Socket socket) {
 			this.socket = socket;
 		}
@@ -134,6 +153,12 @@ public class FileSender {
 					
 				}
 				output.close();
+				try {
+					if (!shared_connection)
+						this.socket.close();
+				} catch (Exception e) {
+					
+				}
 			} 
 			catch (IOException e) {
 				tcp_exception = new Exception("I/O error: " + e.getMessage());

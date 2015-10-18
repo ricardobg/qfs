@@ -10,11 +10,12 @@ public class Send {
 	public static void main(String[] args) {
 		/*
 		 * How to call this program:
-		 * qfs-send FILE -d destination -p port [-jN] [-b block_size] [-q queue_size] [--help]
+		 * qfs-send FILE -d destination -p port [-jN] [-b block_size] [-q queue_size] [-s] [--help]
 		 * Where N is the number of threads to send the file 
 		 */
 		String file = null, destination = null;
 		int port = -1, threads = 1, block_size = Block.getBlockSize(), queue_size = 100;
+		boolean shared_connection = false;
 		if (args.length == 0)
 			System.out.println("Usage: qfs-send FILE -d destination -p port [-b block_size] [-q queue_size] [-jN] [--help]");
 		for (int i = 0; i < args.length; i++) {
@@ -53,6 +54,9 @@ public class Send {
 							System.out.println("Invalid Block size: '" + args[i]);
 							return;
 						}
+						continue;
+					case "-s":
+						shared_connection = true;
 						continue;
 					case "-q":
 						if (i == args.length - 1) {
@@ -119,7 +123,7 @@ public class Send {
 		
 		// send the file
 		try {
-			FileSender fs = new FileSender(file, queue_size, block_size);
+			FileSender fs = new FileSender(file, queue_size, block_size, shared_connection);
 			fs.send(destination, port, threads);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
