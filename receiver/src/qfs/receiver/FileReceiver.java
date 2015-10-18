@@ -64,7 +64,7 @@ public class FileReceiver {
 			for (int i = 0; i < nThreads; i++) {
 				total_time += get_time[i];
 			}
-			System.out.println("Time to transmit : " + total_time / 1000000 + "ms");
+			System.out.println("Time to transmit : " + total_time / 1000000.0 + "ms");
 			
 			
 			
@@ -126,7 +126,7 @@ public class FileReceiver {
 			try {
 				FileOutputStream fos = new FileOutputStream(file);
 				
-				long start = System.currentTimeMillis();
+				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 				while (true) {
 						Block b = buffer.take();
 						if (b.finished())
@@ -145,8 +145,8 @@ public class FileReceiver {
 						}
 						
 				}
-				long now = System.currentTimeMillis();
-				System.out.println("Time to write in thread " + number + ": " + (now - start) + "ms");
+				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+				System.out.println("Time to write file: " + (now - start) / 1000000 + "ms");
 		        
 				fos.close();
 			} catch (IOException | InterruptedException e) {
