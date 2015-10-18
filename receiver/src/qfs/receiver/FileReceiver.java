@@ -34,29 +34,33 @@ public class FileReceiver {
 		
 	}
 	
-	public void receive(final int port, final int nThreads, final int block_size, final int queue_size) {
+	public void receive(final int port, final int nThreads, final int block_size, final int queue_size, final boolean shared_con) {
 		
 		try {
-			serverSocket = new ServerSocket(port);
-			clientSocker = serverSocket.accept();
-			System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
+			if (!shared_con) {
+				serverSocket = new ServerSocket(port);
+				clientSocker = serverSocket.accept();
+				System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
+			}
 			
 			multiThread3 = new Thread3[nThreads];
 			
 			for (int i = 0; i < nThreads; i++) {
-				multiThread3[i] = new Thread3(i);
+				multiThread3[i] = new Thread3(shared_con, port);
 				multiThread3[i].start();
 			}
 			
-			Thread4 thread4 = new Thread4(0, nThreads);
+			Thread4 thread4 = new Thread4(nThreads);
 			thread4.start();
 			
 			while (threadsAreAlive(nThreads) || thread4.isAlive()) {
 				Thread.sleep(100);
 			}
 		
-			serverSocket.close();
-			clientSocker.close();
+			if (!shared_con) {
+				serverSocket.close();
+				clientSocker.close();
+			}
 			
 			System.out.println("Time to receive : " + rec_time / 1000000.0 + "ms");
 			
@@ -70,17 +74,25 @@ public class FileReceiver {
 	//Thread 3 -> receive data and write the bytes in a buffer.
 	private class Thread3 extends Thread {
 		
-		private int number; //number of thread
+		private ServerSocket serverSocket;
+		private Socket clientSocker;
 		
-		public Thread3(int number) {
-			this.number = number;
+		public Thread3(boolean shared_con, int port) throws IOException {
+			if (shared_con) {
+				this.serverSocket = new ServerSocket(port);
+				this.clientSocker = this.serverSocket.accept();
+			} else {
+				this.serverSocket = FileReceiver.this.serverSocket;
+				this.clientSocker = FileReceiver.this.clientSocker;
+			}
 		}
 
 		@Override
 		public void run() {
 			try {
+				System.out.println("New connection with client " + this.clientSocker.getInetAddress().getHostAddress());
 				byte[] b = new byte[Block.getRealBlockSize()];
-				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
+				DataInputStream dis = new DataInputStream(this.clientSocker.getInputStream());
 				
 				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 				int read = dis.read(b);
@@ -106,13 +118,11 @@ public class FileReceiver {
 	//Thread 4 -> write bytes to a file 
 	private class Thread4 extends Thread {
 
-		private int number; //number of thread
 		private int t4_id = 0; //package id
 		private int nThreads;
 		private int counterThreads3 = 0;
 		
-		public Thread4(int number, int n) {
-			this.number = number;
+		public Thread4(int n) {
 			this.nThreads = n;
 		}
 		

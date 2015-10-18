@@ -9,11 +9,10 @@ public class Receive {
 			nJobs = 1, 
 			block_size = Block.getBlockSize(), 
 			queue_size = 100;
-		
-		
+		boolean shared_con = false; 
 		
 		if (args.length == 0) {
-			System.out.println("Usage: qfs-receive FILE -p port [-b block_size] [-q queue_size] [-jN] [--help]");
+			System.out.println("Usage: qfs-receive FILE -p port [-b block_size] [-q queue_size] [-c number_connections] [-jN] [--help]");
 		} else {
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].startsWith("-")) {
@@ -62,6 +61,8 @@ public class Receive {
 								return;
 							}
 						}
+					}  else if (args[i].equals("-s")) {
+						shared_con = true;
 					} else if (args[i].equals("--help")) {
 						System.out.println("Command to prepare computer for receiving file through TCP:");
 						System.out.println("");
@@ -69,6 +70,7 @@ public class Receive {
 						System.out.println("-p N: N is the port number.");
 						System.out.println("-b N: N is the block size.");
 						System.out.println("-q N: N is the queue size.");
+						System.out.println("-s: one connection per thread.");
 						System.out.println("-jN: N ir the number of threads to receive.");
 						return;
 					}
@@ -83,6 +85,6 @@ public class Receive {
 			}
 		}
 		FileReceiver fr = new FileReceiver(file);
-		fr.receive(port, nJobs, block_size, queue_size);
+		fr.receive(port, nJobs, block_size, queue_size, shared_con);
 	}
 }
