@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -20,6 +21,7 @@ public class FileSender {
 	private Exception tcp_exception = null;
 	private ArrayBlockingQueue<Block> queue;
 	private volatile long read_time = 0;
+	private volatile long send_time = 0;
 	private int threads;
 	Socket socket;
 	public FileSender(String file_path, int queue_size, int block_size) throws Exception {
@@ -37,6 +39,7 @@ public class FileSender {
 		Thread2[] threads2 = new Thread2[threads];//send thread
 		try  {
 			socket = new Socket(destination, port);
+			System.out.println("New connection with server " + socket.getInetAddress().getHostAddress());
 			for (int i = 0; i < threads; i++)
 				threads2[i] = new Thread2(socket);
 		}
@@ -64,7 +67,9 @@ public class FileSender {
 		if (tcp_error)
 			throw tcp_exception;
 		System.out.println("File sent!");
-		System.out.println("Time to Read: " + read_time + "ms");
+		System.out.println("Time to Read: " + (read_time/(1000*1000.0)) + "ms");
+		System.out.println("Time to Send: " + (send_time/(1000*1000.0)) + "ms");
+		
 	}
 	
 	private class Thread1 extends Thread {
@@ -73,18 +78,20 @@ public class FileSender {
 			try {
 				FileInputStream fis = new FileInputStream(file);
 				int read;
-				long start = System.currentTimeMillis();
+				read_time = 0;
 				byte[] buffer = new byte[Block.getBlockSize()];
 				int part = 0;
 				do
 				{
+					long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 					read = fis.read(buffer); 
+					read_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 					Block b = new Block(buffer, read, part);
 					part += Block.getBlockSize();
 					queue.put(b);
 				}
 				while (read > 0 && !tcp_error);
-				read_time = System.currentTimeMillis() - start;
+				
 				fis.close();
 				for (int i = 0; i < threads; i++)
 					queue.put(new Block());
@@ -120,8 +127,10 @@ public class FileSender {
 					if (buffer.finished()) {
 						break;
 					}
+					long start = read_time = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 					output.write(buffer.getBytes());
 					output.flush();
+					send_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 					
 				}
 				output.close();
