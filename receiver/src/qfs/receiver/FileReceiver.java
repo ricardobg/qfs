@@ -84,13 +84,15 @@ public class FileReceiver {
 				
 				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 				int read = dis.read(b);
-				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-				rec_time += now - start;
+				rec_time +=  ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
+				
 				
 				while (read > 0) {
 					Block block = new Block(b, read);
 					buffer.put(block);
+					start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 					read = dis.read(b);
+					rec_time +=  ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 				}
 				
 				buffer.put(new Block());
@@ -119,7 +121,7 @@ public class FileReceiver {
 			try {
 				FileOutputStream fos = new FileOutputStream(file);
 				
-				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+				long save_time = 0;
 				while (true) {
 						Block b = buffer.take();
 						if (b.finished())
@@ -130,16 +132,19 @@ public class FileReceiver {
 						
 						System.out.println("Block arrived: " + b.getId() + "	Block expected: " + t4_id);
 						if (b.getId() == t4_id) {
+							long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 							fos.write(b.getBytes());
+							save_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 							t4_id += Block.getBlockSize();
 						} else {
 							map_blocks.put(b.getId(), b);
+							long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 							t4_id = writeBlockFromMapIfExists(t4_id, fos);
+							save_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 						}
 						
 				}
-				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-				System.out.println("Time to write file: " + (now - start) / 1000000.0 + "ms");
+				System.out.println("Time to write file: " + (save_time) / 1000000.0 + "ms");
 		        
 				fos.close();
 			} catch (IOException | InterruptedException e) {
