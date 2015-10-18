@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -21,7 +22,8 @@ public class FileReceiver {
 	final private int buffer_size = 100;
 	private ArrayBlockingQueue<Block> buffer;
 	
-	Thread3[] multiThread3;
+	private Thread3[] multiThread3;
+	private long[] get_time;
 	
 	Map<Integer, Block> map_blocks;	//hash table of id_block to block;
 	
@@ -35,6 +37,8 @@ public class FileReceiver {
 	public void receive(final int port, final int nThreads, final int block_size, final int queue_size) {
 		
 		try {
+			get_time = new long[nThreads];
+			
 			serverSocket = new ServerSocket(port);
 			clientSocker = serverSocket.accept();
 			System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
@@ -56,6 +60,14 @@ public class FileReceiver {
 			serverSocket.close();
 			clientSocker.close();
 			
+			long total_time = 0;
+			for (int i = 0; i < nThreads; i++) {
+				total_time += get_time[i];
+			}
+			System.out.println("Time to transmit : " + total_time / 1000000 + "ms");
+			
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -73,18 +85,20 @@ public class FileReceiver {
 		@Override
 		public void run() {
 			try {
-				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
 				byte[] b = new byte[Block.getRealBlockSize()];
+				
+				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
+				long now = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+				get_time[number] = now - start;
+				
 				int read = dis.read(b);
 				
-				long start = System.currentTimeMillis();
 				while (read > 0) {
 					Block block = new Block(b, read);
 					buffer.put(block);
 					read = dis.read(b);
 				}
-				long now = System.currentTimeMillis();
-		        System.out.println("Time to transmit in thread " + number + ": " + (now - start) + "ms");
 				
 				buffer.put(new Block());
 				
