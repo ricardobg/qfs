@@ -1,8 +1,6 @@
 package qfs.common;
 
 public class Block {
-	public final static int BLOCK_SIZE = 50;
-	public final static int REAL_BLOCK_SIZE = BLOCK_SIZE + 4;
 	public static void SetBlockSize(int new_block_size) {
 		block_size = new_block_size;
 	}

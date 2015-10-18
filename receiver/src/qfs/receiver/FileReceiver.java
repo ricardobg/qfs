@@ -124,7 +124,7 @@ public class FileReceiver {
 						System.out.println("Block arrived: " + b.getId() + "	Block expected: " + t4_id);
 						if (b.getId() == t4_id) {
 							fos.write(b.getBytes());
-							t4_id += Block.getRealBlockSize();
+							t4_id += Block.getBlockSize();
 						} else {
 							map_blocks.put(b.getId(), b);
 							t4_id = writeBlockFromMapIfExists(t4_id, fos);
@@ -154,7 +154,7 @@ public class FileReceiver {
 		Block block = map_blocks.get(current_id);
 		while (block != null) {
 			fos.write(block.getBytes());
-			current_id += Block.BLOCK_SIZE;
+			current_id += Block.getBlockSize();
 			block = map_blocks.get(current_id);
 		}
 		
