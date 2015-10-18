@@ -37,9 +37,11 @@ public class FileReceiver {
 	public void receive(final int port, final int nThreads, final int block_size, final int queue_size, final boolean shared_con) {
 		
 		try {
+			
+			serverSocket = new ServerSocket(port);
+			
 			if (!shared_con) {
-				serverSocket = new ServerSocket(port);
-				clientSocker = serverSocket.accept();
+				this.clientSocker = serverSocket.accept();
 				System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
 			}
 			
@@ -57,9 +59,9 @@ public class FileReceiver {
 				Thread.sleep(100);
 			}
 		
+			serverSocket.close();
 			if (!shared_con) {
-				serverSocket.close();
-				clientSocker.close();
+				this.clientSocker.close();
 			}
 			
 			System.out.println("Time to receive : " + rec_time / 1000000.0 + "ms");
@@ -74,17 +76,14 @@ public class FileReceiver {
 	//Thread 3 -> receive data and write the bytes in a buffer.
 	private class Thread3 extends Thread {
 		
-		private ServerSocket serverSocket;
 		private Socket clientSocker;
+		private boolean shared_con;
 		
 		public Thread3(boolean shared_con, int port) throws IOException {
-			if (shared_con) {
-				this.serverSocket = new ServerSocket(port);
-				this.clientSocker = this.serverSocket.accept();
-			} else {
-				this.serverSocket = FileReceiver.this.serverSocket;
-				this.clientSocker = FileReceiver.this.clientSocker;
-			}
+			this.shared_con = shared_con;
+			
+			if (shared_con) this.clientSocker = serverSocket.accept();
+			else 			this.clientSocker = FileReceiver.this.clientSocker;
 		}
 
 		@Override
@@ -108,6 +107,8 @@ public class FileReceiver {
 				}
 				
 				buffer.put(new Block());
+				
+				if (shared_con) this.clientSocker.close();
 				
 			} catch(IOException | InterruptedException e) {
 				e.printStackTrace();
