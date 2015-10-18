@@ -54,6 +54,7 @@ public class Receive {
 						} else {
 							try {
 								block_size = Integer.parseInt(args[++i]);
+								Block.SetBlockSize(block_size);
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid number format at block_size.");
 								return;
