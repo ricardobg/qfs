@@ -60,7 +60,7 @@ public class FileReceiver {
 			}
 		
 			serverSocket.close();
-			if (!shared_con) {
+			if (shared_con) {
 				this.clientSocker.close();
 			}
 			
@@ -82,14 +82,14 @@ public class FileReceiver {
 		public Thread3(boolean shared_con, int port) throws IOException {
 			this.shared_con = shared_con;
 			
-			if (!shared_con) this.clientSocker = serverSocket.accept();
+			if (!shared_con) { this.clientSocker = serverSocket.accept(); 
+			System.out.println("New connection with client " + this.clientSocker.getInetAddress().getHostAddress()); }
 			else 			this.clientSocker = FileReceiver.this.clientSocker;
 		}
 
 		@Override
 		public void run() {
 			try {
-				System.out.println("New connection with client " + this.clientSocker.getInetAddress().getHostAddress());
 				byte[] b = new byte[Block.getRealBlockSize()];
 				DataInputStream dis = new DataInputStream(this.clientSocker.getInputStream());
 				
