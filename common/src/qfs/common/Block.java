@@ -1,10 +1,8 @@
 package qfs.common;
 
 public class Block {
-<<<<<<< HEAD
 	public final static int BLOCK_SIZE = 50;
 	public final static int REAL_BLOCK_SIZE = BLOCK_SIZE + 4;
-=======
 	public static void SetBlockSize(int new_block_size) {
 		block_size = new_block_size;
 	}
@@ -15,7 +13,6 @@ public class Block {
 		return block_size + 4;
 	}
 	private static int block_size = 500;
->>>>>>> 8cae3c550aef3b88b38bcc91810fb76c66a2dbda
 	//Constructor that read id from bytes
 	public Block(byte[] bytes, int size) {
 		if (size <= 4) {

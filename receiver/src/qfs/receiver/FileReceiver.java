@@ -74,7 +74,7 @@ public class FileReceiver {
 		public void run() {
 			try {
 				DataInputStream dis = new DataInputStream(clientSocker.getInputStream());
-				byte[] b = new byte[Block.REAL_BLOCK_SIZE];
+				byte[] b = new byte[Block.getRealBlockSize()];
 				int read = dis.read(b);
 				
 				long start = System.currentTimeMillis();
@@ -124,7 +124,7 @@ public class FileReceiver {
 						System.out.println("Block arrived: " + b.getId() + "	Block expected: " + t4_id);
 						if (b.getId() == t4_id) {
 							fos.write(b.getBytes());
-							t4_id += Block.BLOCK_SIZE;
+							t4_id += Block.getRealBlockSize();
 						} else {
 							map_blocks.put(b.getId(), b);
 							t4_id = writeBlockFromMapIfExists(t4_id, fos);
