@@ -82,7 +82,7 @@ public class FileSender {
 			throw tcp_exception;
 		System.out.println("File sent!");
 		System.out.println("Time to Read: " + (read_time/(1000*1000.0)) + "ms");
-		System.out.println("Time to Send: " + (send_time/(1000*1000.0)) + "ms");
+		//System.out.println("Time to Send: " + (send_time/(1000*1000.0)) + "ms");
 		
 	}
 	
