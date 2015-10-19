@@ -39,6 +39,7 @@ public class FileSender {
 		this.threads = threads;
 		Thread1 thread1 = new Thread1();//read thread
 		Thread2[] threads2 = new Thread2[threads];//send thread
+		long start = System.currentTimeMillis();
 		try  {
 			if (shared_connection) {
 				socket = new Socket(destination, port);
@@ -75,6 +76,7 @@ public class FileSender {
 		} catch (Exception e) {
 			
 		}
+		send_time = System.currentTimeMillis() - start;
 		System.out.println();
 		//Finished loop, check for errors
 		if (read_error)
@@ -83,7 +85,7 @@ public class FileSender {
 			throw tcp_exception;
 		System.out.println("File sent!");
 		System.out.println("Time to Read: " + (read_time/(1000*1000.0)) + "ms");
-		//System.out.println("Time to Send: " + (send_time/(1000*1000.0)) + "ms");
+		System.out.println("Time to Send: " + send_time + "ms");
 		
 	}
 	
@@ -91,6 +93,7 @@ public class FileSender {
 		@Override
 		public void run() {
 			try {
+				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 				FileInputStream fis = new FileInputStream(file);
 				int read;
 				read_time = 0;
@@ -98,9 +101,9 @@ public class FileSender {
 				int part = 0;
 				do
 				{
-					long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+					
 					read = fis.read(buffer); 
-					read_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
+					
 					Block b = new Block(buffer, read, part);
 					part += Block.getBlockSize();
 					queue.put(b);
@@ -108,6 +111,7 @@ public class FileSender {
 				while (read > 0 && !tcp_error);
 				
 				fis.close();
+				read_time = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 				for (int i = 0; i < threads; i++)
 					queue.put(new Block());
 			}
@@ -147,10 +151,8 @@ public class FileSender {
 					if (buffer.finished()) {
 						break;
 					}
-					long start = read_time = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 					output.write(buffer.getBytes());
 					output.flush();
-					send_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 					
 				}
 				output.close();
