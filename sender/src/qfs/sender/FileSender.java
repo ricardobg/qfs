@@ -147,7 +147,6 @@ public class FileSender {
 					if (buffer.finished()) {
 						break;
 					}
-					System.out.println("Sending block " + buffer.getId());
 					long start = read_time = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 					output.write(buffer.getBytes());
 					output.flush();
