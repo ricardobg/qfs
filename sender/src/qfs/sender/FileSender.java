@@ -63,12 +63,13 @@ public class FileSender {
 		thread1.start();
 		while (HasAlive(thread1, threads2)) {
 			try {
-			    Thread.sleep(1);
+			    Thread.sleep(50);
 			} catch(InterruptedException ex) {
 			    Thread.currentThread().interrupt();
 			}
 		}
 		try {
+			System.out.println("Closing connection");
 			if (shared_connection)
 				this.socket.close();
 		} catch (Exception e) {
@@ -146,6 +147,7 @@ public class FileSender {
 					if (buffer.finished()) {
 						break;
 					}
+					System.out.println("Sending block " + buffer.getId());
 					long start = read_time = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 					output.write(buffer.getBytes());
 					output.flush();
@@ -161,7 +163,7 @@ public class FileSender {
 				}
 			} 
 			catch (IOException e) {
-				tcp_exception = new Exception("I/O error: " + e.getMessage());
+				tcp_exception = new Exception("I/O error on thread: " + e.getMessage());
 				tcp_error = true;
 			} catch (InterruptedException e) {
 				tcp_exception = new Exception("Sync error: " + e.getMessage());

@@ -1,5 +1,6 @@
 package qfs.receiver;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +11,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 import qfs.common.Block;
 
@@ -39,16 +41,15 @@ public class FileReceiver {
 		try {
 			
 			serverSocket = new ServerSocket(port);
-			
+			DataInputStream dis = null;
 			if (shared_con) {
 				this.clientSocker = serverSocket.accept();
 				System.out.println("New connection with client " + clientSocker.getInetAddress().getHostAddress());
+				dis = new DataInputStream(clientSocker.getInputStream());
 			}
-			
 			multiThread3 = new Thread3[nThreads];
-			
 			for (int i = 0; i < nThreads; i++) {
-				multiThread3[i] = new Thread3(shared_con, port);
+				multiThread3[i] = new Thread3(shared_con, port, dis);
 				multiThread3[i].start();
 			}
 			
@@ -58,7 +59,8 @@ public class FileReceiver {
 			while (threadsAreAlive(nThreads) || thread4.isAlive()) {
 				Thread.sleep(1);
 			}
-		
+			if (shared_con)
+				dis.close();
 			serverSocket.close();
 			if (shared_con) {
 				this.clientSocker.close();
@@ -72,40 +74,70 @@ public class FileReceiver {
 			e.printStackTrace();
 		}
 	}
-
+	
+	private static Semaphore semaphore = new Semaphore(1);
 	//Thread 3 -> receive data and write the bytes in a buffer.
 	private class Thread3 extends Thread {
 		
 		private Socket clientSocker;
 		private boolean shared_con;
+		private DataInputStream dis;
 		
-		public Thread3(boolean shared_con, int port) throws IOException {
+		
+		public Thread3(boolean shared_con, int port, DataInputStream stream) throws IOException {
 			this.shared_con = shared_con;
 			if (!shared_con) { this.clientSocker = serverSocket.accept(); 
 			System.out.println("New connection with client " + this.clientSocker.getInetAddress().getHostAddress()); }
-			else 			this.clientSocker = FileReceiver.this.clientSocker;
+			else 			{
+				this.clientSocker = FileReceiver.this.clientSocker;
+				this.dis = stream;
+			}
 		}
 
 		@Override
 		public void run() {
 			try {
 				byte[] b = new byte[Block.getRealBlockSize()];
-				DataInputStream dis = new DataInputStream(this.clientSocker.getInputStream());
+				if (!shared_con)
+					dis = new DataInputStream(this.clientSocker.getInputStream());
 				
 				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-				int read = dis.read(b);
+				
 				rec_time +=  ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
-				
-				
-				while (read > 0) {
-					Block block = new Block(b, read);
-					buffer.put(block);
+				int read = 0, last_read = 0;
+				Block block;
+				boolean got_semaphore = false;
+				do {
+					
+					if (shared_con && !got_semaphore) {
+						semaphore.acquire();
+						got_semaphore = true;
+					}
+					last_read = dis.read(b, read, Block.getRealBlockSize() - read);
+					read += last_read;
+					if (read == Block.getRealBlockSize()) {
+						if (shared_con) {
+							semaphore.release();
+							got_semaphore = false;
+						}
+						block = new Block(b, read);
+						read = 0;
+						buffer.put(block);
+						
+					}
 					start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-					read = dis.read(b);
 					rec_time +=  ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 				}
+				while (last_read > 0);
+				if (read > 0) {
+					block = new Block(b, read);
+					buffer.put(block);
+				}
+				if (shared_con)
+					semaphore.release();
 				
 				buffer.put(new Block());
+				
 				
 				if (!shared_con) this.clientSocker.close();
 				
