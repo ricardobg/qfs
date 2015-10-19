@@ -56,7 +56,7 @@ public class FileReceiver {
 			thread4.start();
 			
 			while (threadsAreAlive(nThreads) || thread4.isAlive()) {
-				Thread.sleep(100);
+				Thread.sleep(1);
 			}
 		
 			serverSocket.close();
@@ -81,7 +81,6 @@ public class FileReceiver {
 		
 		public Thread3(boolean shared_con, int port) throws IOException {
 			this.shared_con = shared_con;
-			
 			if (!shared_con) { this.clientSocker = serverSocket.accept(); 
 			System.out.println("New connection with client " + this.clientSocker.getInetAddress().getHostAddress()); }
 			else 			this.clientSocker = FileReceiver.this.clientSocker;

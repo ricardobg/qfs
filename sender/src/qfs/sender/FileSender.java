@@ -63,7 +63,7 @@ public class FileSender {
 		thread1.start();
 		while (HasAlive(thread1, threads2)) {
 			try {
-			    Thread.sleep(100);
+			    Thread.sleep(1);
 			} catch(InterruptedException ex) {
 			    Thread.currentThread().interrupt();
 			}
