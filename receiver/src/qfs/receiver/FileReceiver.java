@@ -39,7 +39,6 @@ public class FileReceiver {
 	public void receive(final int port, final int nThreads, final int block_size, final int queue_size, final boolean shared_con) {
 		
 		try {
-			
 			serverSocket = new ServerSocket(port);
 			DataInputStream dis = null;
 			if (shared_con) {
@@ -50,6 +49,11 @@ public class FileReceiver {
 			multiThread3 = new Thread3[nThreads];
 			for (int i = 0; i < nThreads; i++) {
 				multiThread3[i] = new Thread3(shared_con, port, dis);
+			}
+			
+			long start = System.currentTimeMillis();
+			
+			for (int i = 0; i < nThreads; i++) {
 				multiThread3[i].start();
 			}
 			
@@ -65,8 +69,8 @@ public class FileReceiver {
 			if (shared_con) {
 				this.clientSocker.close();
 			}
-			
-			System.out.println("Time to receive : " + rec_time / 1000000.0 + "ms");
+			long now = System.currentTimeMillis();
+			System.out.println("Time to receive : " + (now - start) + " s");
 			
 			
 			
@@ -161,6 +165,7 @@ public class FileReceiver {
 		@Override
 		public void run() {
 			try {
+				long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 				FileOutputStream fos = new FileOutputStream(file);
 				
 				long save_time = 0;
@@ -172,23 +177,21 @@ public class FileReceiver {
 						if (counterThreads3 == nThreads)
 							break;
 						
-						System.out.println("Block arrived: " + b.getId() + "	Block expected: " + t4_id);
+						//System.out.println("Block arrived: " + b.getId() + "	Block expected: " + t4_id);
 						if (b.getId() == t4_id) {
-							long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 							fos.write(b.getBytes());
-							save_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 							t4_id += Block.getBlockSize();
 						} else {
 							map_blocks.put(b.getId(), b);
-							long start = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 							t4_id = writeBlockFromMapIfExists(t4_id, fos);
-							save_time += ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
 						}
 						
 				}
-				System.out.println("Time to write file: " + (save_time) / 1000000.0 + "ms");
 		        
 				fos.close();
+				save_time = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - start;
+				System.out.println("Time to write file: " + (save_time) / (1000*1000.0) + " ms");
+				
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
