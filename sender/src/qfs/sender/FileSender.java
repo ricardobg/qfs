@@ -34,7 +34,7 @@ public class FileSender {
 		queue = new ArrayBlockingQueue<Block>(queue_size);
 		this.shared_connection = shared_connection;
 	}
-	
+	private int n_blocks = 0;
 	public void send(final String destination, final int port, final int threads) throws Exception {
 		this.threads = threads;
 		Thread1 thread1 = new Thread1();//read thread
@@ -86,6 +86,7 @@ public class FileSender {
 		System.out.println("File sent!");
 		System.out.println("Time to Read: " + (read_time/(1000*1000.0)) + "ms");
 		System.out.println("Time to Send: " + send_time + "ms");
+		System.out.println("Mean time to send block: " + (1.0*send_time/n_blocks) + "ms");
 		
 	}
 	
@@ -106,6 +107,7 @@ public class FileSender {
 					
 					Block b = new Block(buffer, read, part);
 					part += Block.getBlockSize();
+					n_blocks++;
 					queue.put(b);
 				}
 				while (read > 0 && !tcp_error);
