@@ -84,6 +84,14 @@ public class Receive {
 				}
 			}
 		}
+		if (file == null) {
+			System.out.println("Error: No output file.");
+			return;
+		}
+		if (port == -1) {
+			System.out.println("Specify the port");
+			return;
+		}
 		FileReceiver fr = new FileReceiver(file);
 		fr.receive(port, nJobs, block_size, queue_size, shared_con);
 	}
